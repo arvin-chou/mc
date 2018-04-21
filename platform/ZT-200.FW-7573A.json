@@ -1,0 +1,20 @@
+{
+    "feature": {
+        "platform": "ZT-200",
+        "model": "FW-7573A"
+    },
+    "customer": {
+        "business" : {
+            "max": 1000
+        },
+        "businessgrp": {
+            "max": 1000,
+            "children": 256
+        }
+    },
+    "policy": {
+        "secpolicies": {
+                  "max": 4000
+        }   
+    } 
+}

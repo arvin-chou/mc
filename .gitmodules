@@ -1,0 +1,3 @@
+[submodule "third/psycopg2"]
+	path = third/psycopg2
+	url = https://github.com/psycopg/psycopg2

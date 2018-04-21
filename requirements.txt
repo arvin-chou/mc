@@ -1,0 +1,27 @@
+# This is an implicit value, here for clarity
+--index-url https://pypi.python.org/simple/
+
+
+# for reqparse
+six==1.9.0
+
+# for ipaddr validator
+netaddr==0.7.13
+
+Flask==0.10.1
+Flask-SQLAlchemy==1.0
+Flask-Security==1.7.4
+Flask-RESTful==0.3.2
+Flask-cdn==1.5.0
+py-bcrypt==0.4
+pytz==2014.10
+nose==1.3.4
+aniso8601==0.92
+
+#for MySQLdb
+pymysql==0.7.2
+
+eve==0.5.2
+
+#apns
+apns==2.0.1
