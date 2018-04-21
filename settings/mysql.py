@@ -32,6 +32,7 @@ DATABASES = {
         'PASSWORD': "jB?Tm=AVT@]GPNrpLxW-}(8J>'Q6.[7g,}uYy6~ePxT;M7mZkQ)YhkL&Z[WGW4",
         'HOST': 'localhost',
         'PORT': '',
+        'CHARSET': '?charset=utf8',
     }
 }
 ########## END DATABASE CONFIGURATION

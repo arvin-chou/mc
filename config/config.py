@@ -14,17 +14,17 @@ from flask.ext.restful import Api
 from flask import Flask
 from flask.ext import restful
 from flask.ext.sqlalchemy import SQLAlchemy
+from flask import session
 from sqlalchemy import create_engine
 from sqlalchemy import Table, Column, Integer, String, MetaData, ForeignKey
 from sqlalchemy.pool import QueuePool
-from .route import route as _route
+from passlib.context import CryptContext
 
 __all__ = [
   'port',
   'host',
   'app',
   'api',
-  'route',
   'db',
   'metadata',
   'settings',
@@ -34,6 +34,8 @@ __all__ = [
 # export for testing
   'init_db',
   'db',
+  'pwd_context',
+  'session'
   ]
 
 #
@@ -41,7 +43,9 @@ __all__ = [
 #
 platform_model_config = {}
 metadata = MetaData()
-route = _route
+pwd_context = CryptContext(schemes=["sha512_crypt"], 
+        default="sha512_crypt", 
+        sha512_crypt__default_rounds=45000)
 
 
 # http://stackoverflow.com/questions/1009860/command-line-arguments-in-python
@@ -68,7 +72,11 @@ print ('The args is :', options)
 # load global settings
 #
 mod_name,file_ext = os.path.splitext(os.path.split(options.settings)[-1])
-settings = imp.load_source(mod_name, os.path.join(os.getcwd(), options.settings))
+settings = imp.load_source("base", os.path.join(os.getcwd(), 'settings/base.py'))
+user_settings = imp.load_source(mod_name, os.path.join(os.getcwd(), options.settings))
+for col in dir(settings):
+    setattr(settings, col, getattr(user_settings, col))
+    #print(col, "|>", getattr(settings, col))
 
 #
 # copy from http://flask.pocoo.org/snippets/104/
@@ -102,6 +110,11 @@ def install_secret_salt(app, salt_file='salt_key'):
 
     app.config['SECURITY_PASSWORD_SALT'] = SECURITY_PASSWORD_SALT
 
+
+def get_pwd_context():
+    print("2. pwd_context", pwd_context)
+    return pwd_context
+
 #
 # copy from http://victorlin.me/posts/2012/08/26/good-logging-practice-in-python
 #
@@ -131,7 +144,8 @@ app.config['SQLALCHEMY_DATABASE_URI'] = \
                 ]))
               ]) if settings.DATABASES['default']['USER'] else ''),
           ]),
-          settings.DATABASES['default']['NAME']
+          settings.DATABASES['default']['NAME'],
+          settings.DATABASES['default']['CHARSET']
     ])
 
 print('SQLALCHEMY_DATABASE_URI=', app.config['SQLALCHEMY_DATABASE_URI'])
@@ -153,7 +167,7 @@ current_platform_mode = 'current.json'
 # SQLAlchemy's QueuePool, which is the default
 # pool class. However, we need to make it use
 # threadlocal connections
-db = SQLAlchemy(app)
+db = SQLAlchemy(app, use_native_unicode="utf8")
 db.engine.pool._use_threadlocal = True
 db.create_all()
 db.session.commit()
@@ -167,12 +181,12 @@ def init_db():
     if "mysql" in settings.DATABASES['default']['ENGINE']:
         db.session.execute("SET FOREIGN_KEY_CHECKS = 0")
 
-    metadata.create_all(engine)
+    metadata.create_all(engine, checkfirst=True)
 
     if "mysql" in settings.DATABASES['default']['ENGINE']:
         engine.execute("SET FOREIGN_KEY_CHECKS = 1")
 
-    from schema.users import User
+    from module.user.users import Users
 
     # FIXME: plz use normal register flow
     # create mock data for login
@@ -181,7 +195,7 @@ def init_db():
             {'name': 'group1', 'permission': '110000111110001', 'user_id': 1})
 
 def drop_db():
-    metadata.drop_all(engine)
+    metadata.drop_all(engine, checkfirst=False)
 
 def init_platform_model():
     logger.debug('load platforms/models from path: %s', platforms_folder)
@@ -227,25 +241,27 @@ def init_platform_model():
 
     logger.debug('platform_model_config: %s', platform_model_config)
 
-def init_cdn(app, cdn):
-    app.config['CDN_DOMAIN'] = 'mycdnname.cloudfront.net'
-    app.config['CDN_ENDPOINTS'] = 'static'
-    cdn.init_app(app)
-    return app
-
 #
 # modules import
 #
-from schema.users import SchemaUser
-#from module.policy.sql import SchemaPoliciesSecurity,\
-#       SchemaPoliciesSecurityIpAddrs, SchemaPoliciesSecurityIpGroups
-from schema.admingroup import SchemaAdminGroup
-from schema.usersmadmingroup import SchemaUsersMAdminGroup
-from schema.online import SchemaOnline
+from module.user.sql import \
+        SchemaUsers, SchemaOnline, SchemaAdminGroup
+##from module.policy.sql import SchemaPoliciesSecurity,\
+##       SchemaPoliciesSecurityIpAddrs, SchemaPoliciesSecurityIpGroups
+#from schema.usersmadmingroup import SchemaUsersMAdminGroup
 from module.customer.sql import \
         SchemaCustomerBusinesses, \
         SchemaCustomerBusinessgrps, \
-        SchemaCustomerBusinessesBusinessgrps
+        SchemaCustomerBusinessDetails, \
+        SchemaCustomerBusinessPics, \
+        SchemaCustomerBusinessDetailsComments, \
+        SchemaCustomerBusinessRates, \
+        SchemaCustomerBusinessFavorite, \
+        SchemaCustomerBusinessDeals, \
+        SchemaCustomerBusinessComments, \
+        SchemaCustomerBusinessDetailsComments
+from module.customer.sql import SchemaCustomerBusinessesBusinessgrps
+from module.pushno.sql import SchemaPushno
 
 # end modules import
 

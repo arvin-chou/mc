@@ -13,7 +13,7 @@ from sqlalchemy.inspection import inspect
 from config.config import _logging
 
 # for eval, dynamic create class
-from .object.model import ObjectsIpaddrs
+#from .object.model import ObjectsIpaddrs
 
 _reqparse = reqparse.RequestParser()
 logger = _logging.getLogger(__name__)
@@ -133,12 +133,13 @@ field_inputs = {
         },
 }
 
+field_inputs_wrap_head = 'data'
 field_inputs_wrap = {
     'total': {
         'type': fields.Integer()
         }, # for output
     'itemsPerPage': {
-        'validator': validate.int_in_list( default=25, argument=[0, 25, 50, 100]),
+        'validator': validate.int_in_list( default=25, argument=[0, 1, 25, 50, 100]),
         'type': fields.Integer(default=25),
     #'itemsPerPage': {'type': fields.Integer(default=25),
             #,'validator':
@@ -163,10 +164,20 @@ field_inputs_wrap = {
             },
     #'desc': {'type': fields.Boolean(default=False),
     'desc': {
-        'validator': validate.Boolean(default=False),
-        'type': fields.Boolean(default=False),
-        }
+        #'validator': validate.Boolean(default=False),
+        #'type': fields.Boolean(default=False),
+        'validator': validate.natural(default=0),
+        'type': fields.Integer(default=0),
+        },
         #    'validator': {'name': inputs.boolean}}
+    "type": {
+        'type': fields.String(),
+        'validator': validate.str_range(argument={'low': 1, 'high': 255}),
+        },
+    'subtype': {
+        'type': fields.String(),
+        'validator': validate.str_range(argument={'low': 1, 'high': 255}),
+        },
 }
 
 field_inputs_ref = {
@@ -197,6 +208,41 @@ def GetResource(field_inputs={}, field_inputs_ref={}, field_inputs_wrap={}, __he
     resource_fields_wrap[__heads__] = fields.List(fields.Nested(resource_fields))
     return resource_fields, resource_fields_ref, resource_fields_wrap
 
+def RemoveRequestArgs(field_inputs):
+    for k, v in field_inputs.items():
+        _reqparse.remove_argument(k)
+
+def GetTwoLayerRequestArgs(head, field_inputs, dataDict=None):
+    orgArgs, args = GetRequestArgs(head, field_inputs, dataDict)
+
+    # 1.2 parsing 2ed layer reqest
+    try:
+        for v in set((v) for v in set(field_inputs).intersection(orgArgs)
+                if isinstance(field_inputs[v]['validator'], set)):
+            _type = field_inputs[v]['validator']
+
+            validator = next(iter(_type)).container.nested.items() \
+                  if type(_type) is set else _type.items()
+
+            # validate 2ed value
+            # if is list, such as [{id: 1, name:2}, {id: 2, name:2}]
+            for _k, _v in validator:
+              for __v in orgArgs[v]:
+                if (_v.get('required', False)):
+                  _v['type'](__v[_k])
+
+            args[v] = args[v] if args.get(v, False) else []
+            args[v].append(__v)
+
+    except Exception as error:
+        if error == type(BadRequest):
+            raise ValueError('maybe json format error')
+
+        raise ValueError('{}, error={}'.format(error.data['message'], error))
+
+    return orgArgs, args;
+
+
 def GetRequestArgs(head, field_inputs, dataDict=None):
     """checking request parameters/body were validated
 
@@ -225,7 +271,20 @@ def GetRequestArgs(head, field_inputs, dataDict=None):
     try:
         dataDict = request.get_json() if dataDict == None else dataDict
         request.dataDict = dataDict if head == None else dataDict[head]
-        _add_argument(_reqparse, request, field_inputs)
+        print("dataDict", request.dataDict)
+        if type(request.dataDict) is list:
+           #for i, j in enumerate(request.dataDict):
+           #    key = "pre_" +str(i)
+           #    keys = []
+           #    keys.append(key)
+           #    setattr(request, key, j)
+           #    _add_argument(_reqparse, request, field_inputs, location=keys)
+           #    #print("===dataDict", request[i])
+           pass
+        # TODO: integrate with _add_argument
+        else:
+            _add_argument(_reqparse, request, field_inputs)
+        #print("args = ", args)
         args = _reqparse.parse_args()
 
     except Exception as error:
@@ -547,7 +606,8 @@ def SerialObjOutput(r, resource_fields,
         # get one
         for col in r.__table__.columns.keys():
             # first layer
-            args[objname][col] = getattr(r, col)
+            if hasattr(r, col):
+                args[objname][col] = getattr(r, col)
             #print ('type of {} = {}'.format(col, type(getattr(r, col))))
 
         outer = marshal(args, _resource_fields_wrap)
@@ -556,11 +616,12 @@ def SerialObjOutput(r, resource_fields,
                 #print('resource_fields.keys', k, type(v))
                 args[objname][k] = []
 
-                for _r in getattr(r, k):
-                    __r = dict((col, getattr(_r, col)) for col in
-                            _r.__table__.columns.keys())
+                if hasattr(r, k):
+                    for _r in getattr(r, k):
+                        __r = dict((col, getattr(_r, col)) for col in
+                                _r.__table__.columns.keys())
 
-                    args[objname][k].append(__r)
+                        args[objname][k].append(__r)
 
                 # if inner layer has the same attribute with outer layer, marshal will be
                 # ignore last layer :(, so we must pre-marshal inner layer and join to

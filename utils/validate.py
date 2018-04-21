@@ -2,6 +2,7 @@
 
 from flask.ext.restful.fields import Raw
 from flask.ext.restful import inputs
+import utils.inputs as check_import
 
 
 class int_in_list(Raw):
@@ -153,3 +154,22 @@ class str_range(Raw):
             raise ValueError(error)
 
         return value
+
+class email(Raw):
+    argument = None
+    default = None
+
+    def __init__(self, default=0, **kwargs):
+        self.default = default
+
+        super().__init__(default=default)
+
+    def __call__(self, value=None):
+        try:
+            check_import.email(value)
+
+        except Exception as error:
+            raise ValueError(error)
+
+        return value
+

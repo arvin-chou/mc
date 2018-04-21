@@ -1,4 +1,4 @@
-#! /bin/sh
+#! /bin/bash
 DIR=$(dirname $0)
 source ${DIR}/../../common.sh
 URI=/rest/customer/businesses
@@ -16,18 +16,8 @@ case "$1" in
 "post")
   for i in `seq 1 1 1`
   do
-    BODY=$(cat <<'EOF'
-    {
-      "business" : {
-      "description": "Early Bird Special: Get $2 off.",
-      "name": "Starbucks Coffee - 1",
-      "image_url": "business/icon/1",
-      "cat": 1,
-      "deal": 200,
-      "lat": 120.678469,
-      "long": 23.538302
-    }
-  }
+    BODY=$(cat <<EOF
+{"subtype": "overview", "type": "business", "data": {"deal": 200, "dist": 12245, "deals": [{"title": "10% Off Any Order", "description": "Use this promo code and save on coffee, tea, and..."}], "images_url": {"bg": "/img/business/1/bg", "icon": "/img/business/1/icon"}, "close": "2200", "open": "0600", "name": "Starbucks Coffee $i", "description": "early Bird Special: Get $2 off.", "long": 23.5383, "cat": 1, "lat": 120.678, "meals": "this is meals", "features": "this is features", "address": "this is address"}}
 EOF
 );
 
@@ -37,19 +27,8 @@ EOF
 "put")
   for i in `seq 1 1 1`
   do
-    BODY=$(cat <<'EOF'
-    {
-      "business" : {
-      "description": "Come back john! Get $5 off.",
-      "id": 4,
-      "name": "台北福華大飯店",
-      "image_url": "business/icon/3",
-      "cat": 2,
-      "deal": 201,
-      "lat": 120.4540969,
-      "long": 23.4862023
-    }
-  }
+    BODY=$(cat <<EOF
+    {"subtype": "overview", "type": "business", "data": {"deal": 200, "dist": 12245, "deals": [{"title": "10% Off Any Order", "description": "Use this promo code and save on coffee, tea, and..."}], "images_url": {"bg": "/img/business/1/bg", "icon": "/img/business/1/icon"}, "close": "2200", "open": "0600", "name": "Starbucks Coffee 30", "description": "early Bird Special: Get  off.", "long": 23.5383, "cat": 1, "lat": 120.678, "meals": "this is meals", "features": "this is features", "address": "this is address"}}
 EOF
 );
 

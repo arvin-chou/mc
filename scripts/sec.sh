@@ -1,6 +1,7 @@
 #! /bin/sh
-TARGET=http://0.0.0.0:8080
-URI=/rest/object/sec
+DIR=$(dirname $0)
+source ${DIR}/common.sh
+URI=/rest/police/sec
 #TARGET=http://192.168.20.166:8080
 #URI=/rest/profiles/ip/packages
 

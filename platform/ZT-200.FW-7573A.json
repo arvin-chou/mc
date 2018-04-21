@@ -10,11 +10,27 @@
         "businessgrp": {
             "max": 1000,
             "children": 256
+        },
+        "comment": {
+          "max": 1000
+        },
+        "rate": {
+          "max": 1000
         }
+    },
+    "system": {
+        "admin": {
+	  "max": 4000
+        }   
     },
     "policy": {
         "secpolicies": {
                   "max": 4000
         }   
-    } 
+    }, 
+    "pic": {
+      "gallery": {
+        "max": 50
+      }
+    }
 }

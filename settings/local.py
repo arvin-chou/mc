@@ -32,6 +32,7 @@ DATABASES = {
         'PASSWORD': '',
         'HOST': '',
         'PORT': '',
+        'CHARSET': '',
     }
 }
 ########## END DATABASE CONFIGURATION
