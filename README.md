@@ -44,20 +44,43 @@ The following assumes you have all of the recommended tools listed above install
 
 #### 1. Clone the project:
 
-    $ git clone git clone git@bitbucket.org:arvinc/mc.git
+    $ git clone https://github.com/arvin-chou/mc.git
     $ cd mc
 
 #### 1.1 prepared environment
     $ apt-get install python3
     $ apt-get install python3-pip
     $ pip3 install virtualenv uwsgi
+    $ apt-get install python-software-properties
+    $ add-apt-repository ppa:gias-kay-lee/npm
+    $ apt-get update
+    $ apt-get install npm
+
+#### 1.2 do more
+    $ apt-get install zsh
+    $ sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
+    $ wget https://gist.githubusercontent.com/phawk/b2b3f1e28f8ffc33b396/raw/41772b8df50395dff3f0281ccde4ab723f1c466e/.screenrc -O ~/.screenrc
 
 #### 2. Create and initialize virtualenv for the project:
 
     $ LC_ALL=C virtualenv mc
     $ source mc/bin/activate
+    $ pip uninstall werkzeug
+    $ pip install werkzeug==0.10
+
+#### 2.1 install Pillow
+    $ apt-get install build-essential curl git m4 ruby texinfo libbz2-dev libcurl4-openssl-dev libexpat-dev libncurses-dev zlib1g-dev
+    $ git clone https://github.com/Homebrew/linuxbrew.git ~/.linuxbrew
+    $ export PATH="$HOME/.linuxbrew/bin:$PATH"
+    $ export MANPATH="$HOME/.linuxbrew/share/man:$MANPATH"
+    $ export INFOPATH="$HOME/.linuxbrew/share/info:$INFOPATH"
+    $ brew install libjpeg zlib
+
+#### 2.2 install Dependency
     $ python3 ./setup.py install
-#### 2.1 Install nginx 1.9.15
+    $ pip install -r requirements.txt # if setup fail
+
+#### 2.3 Install nginx 1.9.15
     # [How to install nginx 1.9.5 with HTTP2 support on Ubuntu 14.04 LTS](https://by-example.org/install-nginx-with-http2-support-on-ubuntu-14-04-lts/)
     $ vim /etc/apt/sources.list 
     # add ```
@@ -73,6 +96,22 @@ The following assumes you have all of the recommended tools listed above install
     $ dpkg -i mysql-apt-config_0.6.0-1_all.deb
     $ apt-get update
     $ apt-get install mysql-server
+    ```
+    // in mysql shell
+    mysql> create database Merchant;
+    mysql> grant all on Merchant.* to 'Merchant_user'@'localhost' identified by "password";
+    mysql> flush privileges;
+    // hack uft-8 default in my.cnf
+    [client]
+    default-character-set = utf8
+
+    [mysqld]
+    character-set-client-handshake=FALSE
+    init_connect = SET collation_connection = utf8_general_ci
+    init_connect = SET NAMES utf8
+    character-set-server = utf8
+    collation-server = utf8_general_ci
+    ```
 
 #### 3. Install the required cookbooks:
 
@@ -92,7 +131,7 @@ The following assumes you have all of the recommended tools listed above install
 
 #### 7. Run the development server:
 
-    $ python wsgi.py
+    (mc) $ run.sh
 
 #### 8. In another console run the Celery app:
 
@@ -101,8 +140,13 @@ The following assumes you have all of the recommended tools listed above install
 #### 9. Open [http://localhost:5000](http://localhost:5000)
 
 ### 10. install apidoc
+    $ npm config set strict-ssl false
     $ npm install apidoc
-    $ ./node_modules/apidoc/bin/apidoc -i module -o apidoc/
+    $ apt-get install nodejs-legacy
+    $ npm cache clean -f
+    $ npm install -g n
+    $ n stable
+    $ IP="localhost" ./scripts/genapidoc.sh # change to your target ip / dns
     $ # open apidoc/index.html
 
 ### Development
@@ -149,4 +193,4 @@ These can sometimes be useful to manipulate data while debugging in the browser.
 
 To run the tests use the following command:
 
-    $ python3 ./setup.py test
+    $ EVN="settings/test.py" python3 ./setup.py test
