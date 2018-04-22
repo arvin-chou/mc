@@ -19,8 +19,8 @@ INTERNAL_PORT = 8082
 DATABASES = {
     'default': {
         'ENGINE': 'mysql+pymysql',
-        'NAME': '/Merchant_test',
-        'USER': 'Merchant_test',
+        'NAME': '/Merchant',
+        'USER': 'Merchant_user',
         'PASSWORD': "7--.<B*n^)",
         'HOST': 'localhost',
         'PORT': '',

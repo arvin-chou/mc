@@ -684,7 +684,7 @@ class CustomerBusinesses(Resource):
 
         @apiExample {curl} Example usage:
 
-        curl -X POST -H "mTag: xx" -H "Content-Type:application/json" -d "
+        curl -X POST -H "mTag: xx" -H "Content-Type:application/json" -d '
         {  
             "data":{  
                 "dist":12245,
@@ -713,7 +713,7 @@ class CustomerBusinesses(Resource):
             },
             "type":"business",
             "subtype":"overview"
-        }" http://localhost/rest/customer/businesses
+        }' http://localhost/rest/customer/businesses
 
 
         @apiError CE_INVALID_PARAM invalid parameter
@@ -847,7 +847,8 @@ class CustomerBusinesses(Resource):
 
 
         # 5. return all data to user
-        out = SerialObjOutput(d, objname=field_inputs_wrap_head,
+        _d = db.session.query(detail).filter(detail.business_id == r.id).one()
+        out = SerialObjOutput(_d, objname=field_inputs_wrap_head,
                 resource_fields=resource_fields_post), 200
 
         for k, v in field_inputs.items():
