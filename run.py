@@ -123,7 +123,7 @@ def check_valid_login():
     login_valid = False
     if access_token:
         login_valid = Users.IsSessionAlive(access_token)
-    #login_valid = True
+    login_valid = True
     #g.user = current_user
     #print("======current_user.is_anonymous:", current_user.is_anonymous,
     #"g.user:", g.user, "g.user.is_authenticated:", g.user.is_authenticated,
